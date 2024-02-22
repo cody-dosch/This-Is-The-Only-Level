@@ -9,10 +9,12 @@ public class PlayerScript : MonoBehaviour
     public float moveSpeed;
     public float jumpPower;
     private bool isFacingRight = true;
+    private float deathDelay = 0;
 
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private LogicScript logic;
 
     private GameObject spawnPipe;
 
@@ -23,27 +25,40 @@ public class PlayerScript : MonoBehaviour
     {
         groundCheck = GameObject.FindGameObjectWithTag("PlayerGroundCheck").transform;
         spawnPipe = GameObject.FindGameObjectWithTag("SpawnPipe");
+        logic = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Get horizontal input
-        horizontal = Input.GetAxisRaw("Horizontal");
-
-        // Handle jump and short jump
-        if (Input.GetButtonDown("Jump") && IsGrounded())
+        if (!logic.isGamePaused)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+            Time.timeScale = 1f;
+
+            // Get horizontal input
+            horizontal = Input.GetAxisRaw("Horizontal");
+
+            // Handle jump and short jump
+            if (Input.GetButtonDown("Jump") && IsGrounded())
+            {
+                rb.velocity = new Vector2(rb.velocity.x, jumpPower);
+            }
+
+            if (Input.GetButtonUp("Jump") && rb.velocity.y > 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
+            }
+
+            // Update player direction
+            Flip();
+        }   
+        else
+        {
+            Time.timeScale = 0f;
         }
 
-        if (Input.GetButtonUp("Jump") && rb.velocity.y > 0)
-        {
-            rb.velocity = new Vector2(rb.velocity.x, rb.velocity.y * 0.5f);
-        }
-
-        // Update player direction
-        Flip();
+        if (deathDelay > 0)
+            deathDelay -= Time.deltaTime;
     }
 
     private void FixedUpdate()
@@ -73,8 +88,14 @@ public class PlayerScript : MonoBehaviour
     {
         if (collision.gameObject.layer == 7)
         {
-            Respawn();
+            // Prevent simultaneous collision with 2 spike objects
+            if (deathDelay > 0)
+                return;
+
+            deathDelay = 0.5f;
+
             OnDeath.Invoke();
+            Respawn();         
         }
     }
 
@@ -85,5 +106,11 @@ public class PlayerScript : MonoBehaviour
         var respawnZ = transform.position.z;
 
         transform.position = new Vector3 (respawnX, respawnY, respawnZ);
+    }
+
+    public void Panic()
+    {
+        OnDeath.Invoke();
+        Respawn();
     }
 }
