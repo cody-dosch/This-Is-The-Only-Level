@@ -32,8 +32,9 @@ public class LogicScript : MonoBehaviour
         exitPipeScript = GameObject.FindGameObjectWithTag("ExitPipe").GetComponent<ExitPipeScript>();
         exitPipeScript.OnLevelComplete += CompleteLevel;
 
-        // TODO: Make current time start at the time stored in player prefs
-        currentTime = 0;
+        currentTime = PlayerPrefs.GetFloat(PlayerPrefsKeys.Keys.TimerValue);
+        deathCount = PlayerPrefs.GetInt(PlayerPrefsKeys.Keys.DeathCount);
+        deathCountText.text = deathCount.ToString();
     }
 
     // Update is called once per frame
@@ -56,6 +57,12 @@ public class LogicScript : MonoBehaviour
     private void CompleteLevel()
     {
         levelCompleteBanner.gameObject.SetActive(true);
+
+        PlayerPrefs.SetFloat(PlayerPrefsKeys.Keys.TimerValue, currentTime);
+        PlayerPrefs.SetInt(PlayerPrefsKeys.Keys.DeathCount, deathCount);
+
+        currentLevel++;
+        PlayerPrefs.SetInt(PlayerPrefsKeys.Keys.CurrentHighestLevel, currentLevel);
     }
 
     public void PauseUnpauseGame()
