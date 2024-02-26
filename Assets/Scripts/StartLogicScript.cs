@@ -26,7 +26,17 @@ public class StartLogicScript : MonoBehaviour
 
     public void Continue()
     {
-        SceneManager.LoadScene($"Level_{currentHighestLevel}");
+        var nextLevelIndex = SceneUtility.GetBuildIndexByScenePath($"Level_{currentHighestLevel}");
+
+        if (nextLevelIndex > 0)
+        {
+            GameState.State.CurrentLevel = currentHighestLevel;
+            SceneManager.LoadScene($"Level_{currentHighestLevel}");
+        }
+        else
+        {
+            SceneManager.LoadScene($"End_Scene");
+        }
     }
 
     public void StartNew()
@@ -34,6 +44,7 @@ public class StartLogicScript : MonoBehaviour
         PlayerPrefs.SetInt(PlayerPrefsKeys.Keys.CurrentHighestLevel, 1);
         PlayerPrefs.SetInt(PlayerPrefsKeys.Keys.DeathCount, 0);
         PlayerPrefs.SetFloat(PlayerPrefsKeys.Keys.TimerValue, 0f);
+        GameState.State.CurrentLevel = 1;
         SceneManager.LoadScene($"Level_1");
     }
 }

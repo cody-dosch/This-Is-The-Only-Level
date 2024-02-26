@@ -2,12 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerScript : MonoBehaviour
 {
-    private float horizontal;
     public float moveSpeed;
     public float jumpPower;
+    public bool invertControls = false;
+    public event Action OnDeath;
+
+    private float horizontal;
     private bool isFacingRight = true;
     private float deathDelay = 0;
 
@@ -15,10 +19,8 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
     [SerializeField] private LogicScript logic;
-
-    private GameObject spawnPipe;
-
-    public event Action OnDeath;
+    [SerializeField] GameObject spawnPipe;
+    [SerializeField] int invertControlsModifier = 1;
 
     // Start is called before the first frame update
     void Start()
@@ -26,6 +28,9 @@ public class PlayerScript : MonoBehaviour
         groundCheck = GameObject.FindGameObjectWithTag("PlayerGroundCheck").transform;
         spawnPipe = GameObject.FindGameObjectWithTag("SpawnPipe");
         logic = GameObject.FindGameObjectWithTag("Logic").GetComponent<LogicScript>();
+
+        // If we invert the controls for the player, make the multiplier we use to do this -1, otherwise set it to 1 so it doesn't affect calculations
+        invertControlsModifier = invertControls ? -1 : 1;
     }
 
     // Update is called once per frame
@@ -36,7 +41,7 @@ public class PlayerScript : MonoBehaviour
             Time.timeScale = 1f;
 
             // Get horizontal input
-            horizontal = Input.GetAxisRaw("Horizontal");
+            horizontal = Input.GetAxisRaw("Horizontal") * invertControlsModifier;
 
             // Handle jump and short jump
             if (Input.GetButtonDown("Jump") && IsGrounded())
@@ -112,5 +117,10 @@ public class PlayerScript : MonoBehaviour
     {
         OnDeath.Invoke();
         Respawn();
+    }
+
+    public void RestartLevel()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

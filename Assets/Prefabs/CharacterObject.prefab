@@ -134,6 +134,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
+  logic: {fileID: 0}
 --- !u!61 &3958265606343376701
 BoxCollider2D:
   m_ObjectHideFlags: 0
